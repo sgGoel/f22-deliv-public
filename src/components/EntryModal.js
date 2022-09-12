@@ -14,6 +14,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { categories } from '../utils/categories';
 import { addEntry } from '../utils/mutations';
+import { updateEntry } from '../utils/mutations';
 
 // Modal component for individual entries.
 
@@ -36,6 +37,8 @@ export default function EntryModal({ entry, type, user }) {
    const [description, setDescription] = useState(entry.description);
    const [category, setCategory] = React.useState(entry.category);
 
+   const[editing, setEdit] = useState(false);
+
    // Modal visibility handlers
 
    const handleClickOpen = () => {
@@ -44,10 +47,13 @@ export default function EntryModal({ entry, type, user }) {
       setLink(entry.link);
       setDescription(entry.description);
       setCategory(entry.category);
+
+      setEdit(true);
    };
 
    const handleClose = () => {
       setOpen(false);
+      setEdit(false);
    };
 
    // Mutation handlers
@@ -65,6 +71,22 @@ export default function EntryModal({ entry, type, user }) {
       addEntry(newEntry).catch(console.error);
       handleClose();
    };
+
+   const handleUpdate = () => {
+      const newEntry = { //what's the id? how do we update?
+         name: name,
+         link: link,
+         description: description,
+         user: user?.displayName ? user?.displayName : "GenericUser",
+         category: category,
+         userid: user?.uid,
+      };
+
+      //console.log(name);
+
+      updateEntry(newEntry).catch(console.error);
+      handleClose();
+   }
 
    // TODO: Add Edit Mutation Handler
 
@@ -87,6 +109,7 @@ export default function EntryModal({ entry, type, user }) {
       type === "edit" ?
          <DialogActions>
             <Button onClick={handleClose}>Cancel</Button>
+            <Button variant="contained" onClick={handleUpdate}>Save Changes</Button>
          </DialogActions>
          : type === "add" ?
             <DialogActions>
@@ -94,7 +117,6 @@ export default function EntryModal({ entry, type, user }) {
                <Button variant="contained" onClick={handleAdd}>Add Entry</Button>
             </DialogActions>
             : null;
-
    return (
       <div>
          {openButton}
