@@ -19,27 +19,13 @@ export async function addEntry(entry) {
       description: entry.description,
       user: entry.user,
       category: entry.category,
-      // The ID of the current user is logged with the new entry for database user-access functionality.
-      // You should not remove this userid property, otherwise your logged entries will not display.
       userid: entry.userid,
    });
 }
 
+//update the doc where entry.id == passed ID
 export async function updateEntry(entry, docID) {
-   // TODO: Create Mutation to Edit Entry
    const docref = doc(db, "entries", docID);
-   //console.log(docID);
-   /*const docSnap = await getDoc(docref);
-
-   if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data());
-   } else {
-      // doc.data() will be undefined in this case
-      console.log("No such document!");
-   }*/
-
-   //check if doc.userID = Auth.userID
-
     await updateDoc(docref, {
       name: entry.name,
       link: entry.link,
@@ -49,9 +35,17 @@ export async function updateEntry(entry, docID) {
    });
 }
 
+//delete the passed entry
 export async function deleteEntry(entry) {
-   // TODO: Create Mutation to Delete Entry
    const docref = doc(db, "entries", entry.id);
    await deleteDoc(docref, {
    });
+}
+
+export async function editOrder(state) {
+   if (state==0){
+   }
+   if (state == 1){
+   }
+   return;
 }

@@ -118,7 +118,18 @@ export default function App() {
     onSnapshot(q, (snapshot) => {
       // Set Entries state variable to the current snapshot
       // For each entry, appends the document ID as an object property along with the existing document data
-      setEntries(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })))
+      //setEntries(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+      var arr = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+
+      arr.sort(function(a, b) { //thanks https://stackoverflow.com/questions/8837454/sort-array-of-objects-by-single-key-with-date-value
+        var v1 = a["name"];
+        var v2 = b["name"];
+        if (v1 < v2) return -1;
+        if (v1 > v2) return 1;
+        return 0;
+      });
+      setEntries(arr);
+
     })
   }, [currentUser]);
 

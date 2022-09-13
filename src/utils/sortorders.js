@@ -1,4 +1,4 @@
-// List of options for entry categories
+// List of options for order displays
 // ! DO NOT CHANGE THIS
 
 export const sortorders = [

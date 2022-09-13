@@ -15,7 +15,7 @@ import { useState } from 'react';
 import { categories } from '../utils/categories';
 import {sortorders } from '../utils/sortorders';
 import { addEntry, deleteEntry } from '../utils/mutations';
-import { updateEntry } from '../utils/mutations';
+import { updateEntry, editOrder } from '../utils/mutations';
 
 // Modal component for individual entries.
 
@@ -29,22 +29,14 @@ user: User making query (The current logged in user). */
 
 export default function EntryModal({ entry, type, user }) {
 
-   const i = 0;
-
    // State variables for modal status
-
-   // TODO: For editing, you may have to add and manage another state variable to check if the entry is being edited.
-
    const [open, setOpen] = useState(false);
    const [name, setName] = useState(entry.name);
    const [link, setLink] = useState(entry.link);
    const [description, setDescription] = useState(entry.description);
    const [category, setCategory] = React.useState(entry.category);
-   const [sortorder, setOrder] = useState(0);  
-   //const [sortorder] = useState(entry.sortorder);
-
-   const[editing, setEdit] = useState(false);
-   //const[docID, setID] = useState(entry.docID);
+   const [sortorder, setOrder] = useState(0);  //sort order state (a->z, or z->a)
+   //const[editing, setEdit] = useState(false);
 
    // Modal visibility handlers
 
@@ -54,13 +46,12 @@ export default function EntryModal({ entry, type, user }) {
       setLink(entry.link);
       setDescription(entry.description);
       setCategory(entry.category);
-
-      setEdit(true);
+      //setEdit(true);
    };
 
    const handleClose = () => {
       setOpen(false);
-      setEdit(false);
+      //setEdit(false);
    };
 
    // Mutation handlers
@@ -73,21 +64,14 @@ export default function EntryModal({ entry, type, user }) {
          user: user?.displayName ? user?.displayName : "GenericUser",
          category: category,
          userid: user?.uid,
-         //id: i++,
       };
 
       addEntry(newEntry).catch(console.error);
-
-      /*const id = this.firestore.createId();
-      set.id = id;
-      return this.firestore.doc(`users/${id}`).set(ev);*/
-
-
       handleClose();
    };
 
    const handleUpdate = () => {
-      const newEntry = { //what's the id? how do we update?
+      const newEntry = { 
          name: name,
          link: link,
          description: description,
@@ -95,10 +79,7 @@ export default function EntryModal({ entry, type, user }) {
          category: category,
          userid: user?.uid,
       };
-
-      //console.log(name);
-      console.log(entry.id);
-
+      //console.log(entry.id);
       updateEntry(newEntry, entry.id).catch(console.error);
       handleClose();
    }
@@ -110,17 +91,11 @@ export default function EntryModal({ entry, type, user }) {
 
    const handleSort = (state) => {
       setOrder(state);
-      //console.log(state);
+      editOrder(state).catch(console.error);
    };
-
-   // TODO: Add Edit Mutation Handler
-
-   // TODO: Add Delete Mutation Handler
 
    // Button handlers for modal opening and inside-modal actions.
    // These buttons are displayed conditionally based on if adding or editing/opening.
-   // TODO: You may have to edit these buttons to implement editing/deleting functionality.
-
    const openButton =
       type === "edit" ? <IconButton onClick={handleClickOpen}>
          <OpenInNewIcon />
@@ -144,22 +119,12 @@ export default function EntryModal({ entry, type, user }) {
       </Select>
    </FormControl> 
    : null;
-      
-      
-      /*
-      <Button  sx={{
-         marginLeft: '10px',
-         marginRight: '10px',
-       }} onClick={handleSort}>
-            Sort
-         </Button>
-            : null;*/
 
    const actionButtons =
       type === "edit" ?
          <DialogActions>
             <Button onClick={handleClose}>Cancel</Button>
-            <Button onClick={handleDelete}>Delete</Button>
+            <Button onClick={handleDelete}>Delete</Button> 
             <Button variant="contained" onClick={handleUpdate}>Save Changes</Button>
          </DialogActions>
          : type === "add" ?
@@ -175,7 +140,7 @@ export default function EntryModal({ entry, type, user }) {
          <Dialog open={open} onClose={handleClose}>
             <DialogTitle>{type === "edit" ? name : "Add Entry"}</DialogTitle>
             <DialogContent>
-               {/* TODO: Feel free to change the properties of these components to implement editing functionality. The InputProps props class for these MUI components allows you to change their traditional CSS properties. */}
+               {/* TODO: Feel free to change the properties of these components*/}
                <TextField
                   margin="normal"
                   id="name"
