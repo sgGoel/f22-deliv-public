@@ -1,4 +1,5 @@
-import { doc, addDoc, updateDoc, setDoc, collection } from "firebase/firestore";
+import { ConstructionOutlined } from "@mui/icons-material";
+import { doc, addDoc, updateDoc, setDoc, collection, getDoc , deleteDoc} from "firebase/firestore";
 import { db } from './firebase';
 
 // Functions for database mutations
@@ -24,19 +25,33 @@ export async function addEntry(entry) {
    });
 }
 
-export async function updateEntry(entry) {
+export async function updateEntry(entry, docID) {
    // TODO: Create Mutation to Edit Entry
-   const tbd = doc(db, "entries", entry.name);
-   console.log(tbd);
+   const docref = doc(db, "entries", docID);
+   //console.log(docID);
+   /*const docSnap = await getDoc(docref);
 
-   //await updateDoc(tbd, {
-   await setDoc(tbd, {
-      //name: entry.name,
+   if (docSnap.exists()) {
+      console.log("Document data:", docSnap.data());
+   } else {
+      // doc.data() will be undefined in this case
+      console.log("No such document!");
+   }*/
+
+   //check if doc.userID = Auth.userID
+
+    await updateDoc(docref, {
+      name: entry.name,
       link: entry.link,
-      //userid: entry.userid,
+      description: entry.description,
+      user: entry.user,
+      category: entry.category,
    });
 }
 
 export async function deleteEntry(entry) {
    // TODO: Create Mutation to Delete Entry
+   const docref = doc(db, "entries", entry.id);
+   await deleteDoc(docref, {
+   });
 }

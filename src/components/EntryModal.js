@@ -13,7 +13,8 @@ import TextField from '@mui/material/TextField';
 import * as React from 'react';
 import { useState } from 'react';
 import { categories } from '../utils/categories';
-import { addEntry } from '../utils/mutations';
+import {sortorders } from '../utils/sortorders';
+import { addEntry, deleteEntry } from '../utils/mutations';
 import { updateEntry } from '../utils/mutations';
 
 // Modal component for individual entries.
@@ -25,7 +26,10 @@ type: Type of entry modal being opened.
    "edit" (for opening or editing an existing entry from table).
 user: User making query (The current logged in user). */
 
+
 export default function EntryModal({ entry, type, user }) {
+
+   const i = 0;
 
    // State variables for modal status
 
@@ -36,8 +40,11 @@ export default function EntryModal({ entry, type, user }) {
    const [link, setLink] = useState(entry.link);
    const [description, setDescription] = useState(entry.description);
    const [category, setCategory] = React.useState(entry.category);
+   const [sortorder, setOrder] = useState(0);  
+   //const [sortorder] = useState(entry.sortorder);
 
    const[editing, setEdit] = useState(false);
+   //const[docID, setID] = useState(entry.docID);
 
    // Modal visibility handlers
 
@@ -66,9 +73,16 @@ export default function EntryModal({ entry, type, user }) {
          user: user?.displayName ? user?.displayName : "GenericUser",
          category: category,
          userid: user?.uid,
+         //id: i++,
       };
 
       addEntry(newEntry).catch(console.error);
+
+      /*const id = this.firestore.createId();
+      set.id = id;
+      return this.firestore.doc(`users/${id}`).set(ev);*/
+
+
       handleClose();
    };
 
@@ -83,10 +97,21 @@ export default function EntryModal({ entry, type, user }) {
       };
 
       //console.log(name);
+      console.log(entry.id);
 
-      updateEntry(newEntry).catch(console.error);
+      updateEntry(newEntry, entry.id).catch(console.error);
       handleClose();
    }
+
+   const handleDelete = () => {
+      deleteEntry(entry).catch(console.error);
+      handleClose();
+   };
+
+   const handleSort = (state) => {
+      setOrder(state);
+      //console.log(state);
+   };
 
    // TODO: Add Edit Mutation Handler
 
@@ -104,11 +129,37 @@ export default function EntryModal({ entry, type, user }) {
             Add entry
          </Button>
             : null;
+   
+   const sortButton =
+      type === "add" ? <FormControl sx={{ marginLeft: '10px', marginRight: '10px'}}>
+      <InputLabel id="demo-simple-select-label">Sort</InputLabel>
+      <Select
+         labelId="demo-simple-select-label"
+         id="demo-simple-select"
+         value={sortorder}
+         label="Category"
+         onChange={(event) => handleSort(event.target.value)}
+      >
+         {sortorders.map((sortorder) => (<MenuItem value={sortorder.id}>{sortorder.name}</MenuItem>))}
+      </Select>
+   </FormControl> 
+   : null;
+      
+      
+      /*
+      <Button  sx={{
+         marginLeft: '10px',
+         marginRight: '10px',
+       }} onClick={handleSort}>
+            Sort
+         </Button>
+            : null;*/
 
    const actionButtons =
       type === "edit" ?
          <DialogActions>
             <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleDelete}>Delete</Button>
             <Button variant="contained" onClick={handleUpdate}>Save Changes</Button>
          </DialogActions>
          : type === "add" ?
@@ -120,6 +171,7 @@ export default function EntryModal({ entry, type, user }) {
    return (
       <div>
          {openButton}
+         {sortButton}
          <Dialog open={open} onClose={handleClose}>
             <DialogTitle>{type === "edit" ? name : "Add Entry"}</DialogTitle>
             <DialogContent>
