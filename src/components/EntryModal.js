@@ -26,6 +26,8 @@ type: Type of entry modal being opened.
    "edit" (for opening or editing an existing entry from table).
 user: User making query (The current logged in user). */
 
+var sort_state;
+export { sort_state }; //sort_state = 0 for alphabetic order
 
 export default function EntryModal({ entry, type, user }) {
 
@@ -79,8 +81,8 @@ export default function EntryModal({ entry, type, user }) {
          category: category,
          userid: user?.uid,
       };
-      //console.log(entry.id);
-      updateEntry(newEntry, entry.id).catch(console.error);
+      console.log(entry.user);
+      updateEntry(newEntry, entry.id, entry.userid, entry.user).catch(console.error);
       handleClose();
    }
 
@@ -90,8 +92,10 @@ export default function EntryModal({ entry, type, user }) {
    };
 
    const handleSort = (state) => {
-      setOrder(state);
-      editOrder(state).catch(console.error);
+      sort_state = state; //set state variable, controls internal logic, implemented for ease of use
+      setOrder(state); //set state variable, controls display
+      //console.log(sort_state);
+      editOrder(state, user).catch(console.error);
    };
 
    // Button handlers for modal opening and inside-modal actions.

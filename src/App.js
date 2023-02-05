@@ -15,7 +15,7 @@ import { createTheme, styled, ThemeProvider } from '@mui/material/styles';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import firebase from 'firebase/compat/app';
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import './App.css';
 import EntryTable from './components/EntryTable';
@@ -23,10 +23,27 @@ import EntryModal from './components/EntryModal';
 import { mainListItems } from './components/listItems';
 import { db, SignInScreen } from './utils/firebase';
 import { emptyEntry } from './utils/mutations';
+import { sort_state } from './components/EntryModal'
 
 // MUI styling constants
 
 const drawerWidth = 240;
+
+function custom_sort(a, b) { //thanks https://stackoverflow.com/questions/8837454/sort-array-of-objects-by-single-key-with-date-value
+  var v1 = a["name"].toLowerCase();
+  var v2 = b["name"].toLowerCase();
+  //alphabetical order:
+  if (!sort_state){
+    if (v1 < v2) return -1;
+    if (v1 > v2) return 1;
+  }
+  //reverse alphabetical order:
+  else {
+    if (v1 < v2) return 1;
+    if (v1 > v2) return -1;
+  }
+  return 0;
+}
 
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
@@ -76,12 +93,13 @@ const mdTheme = createTheme();
 
 // App.js is the homepage and handles top-level functions like user auth.
 
-export default function App() {
+export default function App(){
 
   // User authentication functionality. Would not recommend changing.
 
   const [isSignedIn, setIsSignedIn] = useState(false); // Local signed-in state.
   const [currentUser, setcurrentUser] = useState(null); // Local user info
+  const [entries, setEntries] = useState([]);
 
   // Listen to the Firebase Auth state and set the local state.
   useEffect(() => {
@@ -104,33 +122,32 @@ export default function App() {
   // Data fetching from DB. Would not recommend changing.
   // Reference video for snapshot functionality https://www.youtube.com/watch?v=ig91zc-ERSE
 
-  const [entries, setEntries] = useState([]);
-
   useEffect(() => {
 
     // ! Database query filters entries for current user. DO NOT CHANGE, editing this query may cause it to fail.
     const q = currentUser?.uid ? query(collection(db, "entries"), where("userid", "==", currentUser.uid)) : collection(db, "entries");
 
-    /* NOTE: onSnapshot allows the page to update automatically whenever there is 
-    an update to the database. This means you do not have to manually update
-    the page client-side after making an add/update/delete. The page will automatically
-    sync with the database! */
     onSnapshot(q, (snapshot) => {
-      // Set Entries state variable to the current snapshot
+      // Set state variable to the current snapshot
       // For each entry, appends the document ID as an object property along with the existing document data
-      //setEntries(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
       var arr = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 
-      arr.sort(function(a, b) { //thanks https://stackoverflow.com/questions/8837454/sort-array-of-objects-by-single-key-with-date-value
-        var v1 = a["name"];
-        var v2 = b["name"];
-        if (v1 < v2) return -1;
-        if (v1 > v2) return 1;
-        return 0;
+      arr.sort(function(a, b) {
+        return custom_sort(a,b);
       });
       setEntries(arr);
 
-    })
+    });
+
+    document.addEventListener("sort called", function({detail}){
+    var {arr} = detail;
+    console.log(arr);
+    //var arr = arrv;
+    arr.sort(function(a, b) {
+      return custom_sort(a,b);
+    });
+    setEntries(arr);
+    });
   }, [currentUser]);
 
   // Main content of homescreen. This is displayed conditionally from user auth status
@@ -138,14 +155,14 @@ export default function App() {
   function mainContent() {
     if (isSignedIn) {
       return (
-        <Grid container spacing={3}>
+        <Grid id = "grid_entries" container spacing={3}>
           <Grid item xs={12}>
             <Stack direction="row" spacing={3}>
               <EntryModal entry={emptyEntry} type="add" user={currentUser} />
             </Stack>
           </Grid>
           <Grid item xs={12}>
-            <EntryTable entries={entries} />
+            <EntryTable id="table_entries" entries={entries} />
           </Grid>
         </Grid>
       )
@@ -240,7 +257,7 @@ export default function App() {
           }}
         >
           <Toolbar />
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+          <Container id="entries_container" maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             {mainContent()}
           </Container>
         </Box>
